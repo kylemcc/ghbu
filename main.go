@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/google/go-github/github"
 
@@ -55,6 +56,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	start := time.Now()
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: *token})
 	tc := oauth2.NewClient(ctx, ts)
@@ -83,6 +85,7 @@ func main() {
 		fmt.Printf("Backing up user %s...\n", u.GetLogin())
 		backupUser(ctx, *userName, cfg)
 	}
+	fmt.Printf("Backup finished. Took %v\n", time.Since(start))
 }
 
 func getUser(ctx context.Context, gc *github.Client, user string) (*github.User, error) {
