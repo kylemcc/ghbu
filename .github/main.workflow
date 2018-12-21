@@ -1,34 +1,34 @@
 workflow "Build Docker Image" {
   on = "push"
-  resolves = ["kylemcc/actions/slack-webhook@master"]
+  resolves = ["Send Slack Notification"]
 }
 
-action "master-branch" {
+action "Check Master Branch" {
   uses = "actions/bin/filter@b2bea07"
   args = "branch master"
 }
 
-action "docker-login" {
+action "Docker Login" {
   uses = "actions/docker/login@76ff57a"
-  needs = ["master-branch"]
+  needs = ["Check Master Branch"]
   secrets = ["DOCKER_USERNAME", "DOCKER_PASSWORD"]
 }
 
-action "build-image" {
+action "Build Image" {
   uses = "actions/docker/cli@76ff57a"
-  needs = ["docker-login"]
+  needs = ["Docker Login"]
   args = "build -t kylemcc/prv:ghbu ."
 }
 
-action "push-image" {
+action "Push Image" {
   uses = "actions/docker/cli@76ff57a"
-  needs = ["build-image"]
+  needs = ["Build Image"]
   args = "push kylemcc/prv:ghbu"
 }
 
-action "kylemcc/actions/slack-webhook@master" {
+action "Send Slack Notification" {
   uses = "kylemcc/actions/slack-webhook@master"
-  needs = ["push-image"]
+  needs = ["Push Image"]
   secrets = ["SLACK_WEBHOOK_URL"]
   env = {
     SLACK_MESSAGE = "$GITHUB_REPOSITORY: Build Complete"
