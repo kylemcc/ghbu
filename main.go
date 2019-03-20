@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	// MaxRetries is the max number of attempts for github api operations
 	MaxRetries = 2
 )
 
@@ -27,6 +28,7 @@ var (
 	replace  bool
 )
 
+// Config holds the configuration for the backup procedure
 type Config struct {
 	// The directory to which the specified account should be backed up
 	Dir string
@@ -221,15 +223,15 @@ func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 		return err
 	}
 
-	var cloneUrl string
+	var cloneURL string
 	if s := r.GetSSHURL(); s != "" {
-		cloneUrl = s
+		cloneURL = s
 	} else {
-		cloneUrl = r.GetCloneURL()
+		cloneURL = r.GetCloneURL()
 	}
 
 	fmt.Printf("Backing up %v...\n", r.GetFullName())
-	cmd := exec.Command("git", "clone", cloneUrl)
+	cmd := exec.Command("git", "clone", cloneURL)
 	cmd.Dir = cfg.Dir
 	err := cmd.Run()
 	if err != nil {
