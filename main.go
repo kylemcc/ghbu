@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/genuinetools/pkg/cli"
@@ -40,6 +43,9 @@ type Config struct {
 	// If true, back up authenticated user's repos
 	Self bool
 
+	// Number of repos to back up concurrently
+	Parallel int
+
 	Client *github.Client
 }
 
@@ -63,6 +69,8 @@ func main() {
 	p.FlagSet.StringVar(&token, "t", "", "Github auth token. Will use the value of $GITHUB_TOKEN if set (required)")
 	p.FlagSet.BoolVar(&replace, "replace", false, "Replace existing repositories in -dir instead of attempting to update")
 	p.FlagSet.BoolVar(&replace, "r", false, "Replace existing repositories in -dir instead of attempting to update")
+	p.FlagSet.IntVar(&parallel, "parallel", 2, "Number of repositories to clone in parallel")
+	p.FlagSet.IntVar(&parallel, "p", 2, "Number of repositories to clone in parallel")
 
 	p.Before = func(ctx context.Context) error {
 		if t := os.Getenv("GITHUB_TOKEN"); t != "" {
@@ -80,17 +88,28 @@ func main() {
 		return nil
 	}
 
-	p.Action = func(ctx context.Context, args []string) error {
+	p.Action = func(pctx context.Context, args []string) error {
+		ctx, cancel := context.WithCancel(pctx)
+
 		start := time.Now()
 		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 		tc := oauth2.NewClient(ctx, ts)
 		gc := github.NewClient(tc)
 
 		cfg := &Config{
-			Dir:     dir,
-			Replace: replace,
-			Client:  gc,
+			Dir:      dir,
+			Replace:  replace,
+			Client:   gc,
+			Parallel: parallel,
 		}
+
+		go func(cancel context.CancelFunc) {
+			c := make(chan os.Signal, 1)
+			signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+			s := <-c
+			fmt.Printf("Signal caught: %v\n", s)
+			cancel()
+		}(cancel)
 
 		var repos []*github.Repository
 
@@ -194,12 +213,39 @@ func getUserRepos(ctx context.Context, gc *github.Client, user string) ([]*githu
 }
 
 func backupRepos(ctx context.Context, cfg *Config, repos []*github.Repository) error {
+	var (
+		wg sync.WaitGroup
+
+		ch = make(chan struct{}, cfg.Parallel)
+	)
+
 	fmt.Printf("Backing up %d repositories to %s...\n", len(repos), cfg.Dir)
+
+	for i := 0; i < cfg.Parallel; i++ {
+		ch <- struct{}{}
+	}
 	for _, r := range repos {
-		if err := backupRepo(ctx, r, cfg); err != nil {
-			logError("error backing up repository %s: %v\n", r.GetFullName(), err)
+		select {
+		case <-ch:
+			wg.Add(1)
+			go func(repo *github.Repository) {
+				defer func() {
+					ch <- struct{}{}
+					wg.Done()
+				}()
+
+				if err := backupRepo(ctx, repo, cfg); err != nil {
+					logError("error backing up repository %s: %v\n", repo.GetFullName(), err)
+				}
+			}(r)
+		case <-ctx.Done():
+			fmt.Printf("cleaning up...\n")
+			wg.Wait()
+			return nil
 		}
 	}
+
+	wg.Wait()
 	return nil
 }
 
@@ -239,7 +285,7 @@ func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 		logError("error cloning %v: %v\n", r.GetFullName(), err)
 		return err
 	}
-	fmt.Printf("Done.\n")
+	fmt.Printf("Done backing up %v.\n", r.GetFullName())
 	return nil
 }
 
@@ -252,6 +298,6 @@ func updateRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 		logError("error updating %v: %v\n", r.GetFullName(), err)
 		return err
 	}
-	fmt.Printf("Done.\n")
+	fmt.Printf("Done backing up %v.\n", r.GetFullName())
 	return nil
 }
