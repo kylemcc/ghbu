@@ -208,7 +208,6 @@ func getUserRepos(ctx context.Context, gc *github.Client, user string) ([]*githu
 		opt.Page = resp.NextPage
 		retry = 0
 	}
-	fmt.Printf("r: %+v\n\n", allRepos[0])
 	return allRepos, nil
 }
 
