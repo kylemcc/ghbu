@@ -280,6 +280,9 @@ func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 	fmt.Printf("Backing up %v...\n", r.GetFullName())
 	cmd := exec.Command("git", "clone", cloneURL)
 	cmd.Dir = cfg.Dir
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+	}
 	err := cmd.Run()
 	if err != nil {
 		logError("error cloning %v: %v\n", r.GetFullName(), err)
@@ -293,6 +296,9 @@ func updateRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 	fmt.Printf("Updating %v...\n", r.GetFullName())
 	cmd := exec.Command("git", "pull")
 	cmd.Dir = filepath.Join(cfg.Dir, r.GetName())
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid: true,
+	}
 	err := cmd.Run()
 	if err != nil {
 		logError("error updating %v: %v\n", r.GetFullName(), err)
