@@ -26,6 +26,7 @@ var (
 	dir      string
 	token    string
 	replace  bool
+	parallel int
 )
 
 // Config holds the configuration for the backup procedure
@@ -91,24 +92,35 @@ func main() {
 			Client:  gc,
 		}
 
+		var repos []*github.Repository
+
 		if orgName != "" {
 			o, err := getOrg(ctx, gc, orgName)
 			if err != nil {
-				logError("error: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error: %v", err)
 			}
+
+			repos, err = getOrgRepos(ctx, gc, o.GetLogin())
+			if err != nil {
+				return fmt.Errorf("error: %v", err)
+			}
+
 			fmt.Printf("Backing up organization %s...\n", o.GetLogin())
-			backupOrg(ctx, orgName, cfg)
 		} else {
 			u, err := getUser(ctx, gc, userName)
 			if err != nil {
-				logError("error: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("error: %v", err)
 			}
+
+			repos, err = getUserRepos(ctx, gc, u.GetLogin())
+			if err != nil {
+				return fmt.Errorf("error: %v", err)
+			}
+
 			fmt.Printf("Backing up user %s...\n", u.GetLogin())
-			backupUser(ctx, userName, cfg)
 		}
 
+		backupRepos(ctx, cfg, repos)
 		fmt.Printf("Backup finished. Took %v\n", time.Since(start))
 
 		return nil
@@ -125,21 +137,6 @@ func getUser(ctx context.Context, gc *github.Client, user string) (*github.User,
 func getOrg(ctx context.Context, gc *github.Client, org string) (*github.Organization, error) {
 	o, _, err := gc.Organizations.Get(ctx, org)
 	return o, err
-}
-
-func backupOrg(ctx context.Context, org string, cfg *Config) error {
-	repos, err := getOrgRepos(ctx, cfg.Client, org)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Backing up %d repositories to %s...\n", len(repos), cfg.Dir)
-	for _, r := range repos {
-		if err := cloneRepo(ctx, r, cfg); err != nil {
-			logError("error backing up repository %s: %v\n", r.GetFullName(), err)
-		}
-	}
-	return nil
 }
 
 func getOrgRepos(ctx context.Context, gc *github.Client, org string) ([]*github.Repository, error) {
@@ -166,21 +163,6 @@ func getOrgRepos(ctx context.Context, gc *github.Client, org string) ([]*github.
 		retry = 0
 	}
 	return allRepos, nil
-}
-
-func backupUser(ctx context.Context, user string, cfg *Config) error {
-	repos, err := getUserRepos(ctx, cfg.Client, user)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Backing up %d repositories to %s...\n", len(repos), cfg.Dir)
-	for _, r := range repos {
-		if err := cloneRepo(ctx, r, cfg); err != nil {
-			logError("error backing up repository %s: %v\n", r.GetFullName(), err)
-		}
-	}
-	return nil
 }
 
 func getUserRepos(ctx context.Context, gc *github.Client, user string) ([]*github.Repository, error) {
@@ -211,7 +193,17 @@ func getUserRepos(ctx context.Context, gc *github.Client, user string) ([]*githu
 	return allRepos, nil
 }
 
-func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
+func backupRepos(ctx context.Context, cfg *Config, repos []*github.Repository) error {
+	fmt.Printf("Backing up %d repositories to %s...\n", len(repos), cfg.Dir)
+	for _, r := range repos {
+		if err := backupRepo(ctx, r, cfg); err != nil {
+			logError("error backing up repository %s: %v\n", r.GetFullName(), err)
+		}
+	}
+	return nil
+}
+
+func backupRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 	dest := filepath.Join(cfg.Dir, r.GetName())
 	if _, err := os.Stat(dest); err == nil {
 		// dir exists
@@ -228,6 +220,10 @@ func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 		return err
 	}
 
+	return cloneRepo(ctx, r, cfg)
+}
+
+func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 	var cloneURL string
 	if s := r.GetSSHURL(); s != "" {
 		cloneURL = s
