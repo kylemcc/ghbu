@@ -65,18 +65,14 @@ func main() {
 	p.FlagSet.StringVar(&userName, "u", "", "Github user to backup (if not specificed, the authenticated user is assumed).")
 	p.FlagSet.StringVar(&dir, "dir", "", "Directory where repositories should be backed up (required)")
 	p.FlagSet.StringVar(&dir, "d", "", "Directory where repositories should be backed up (required)")
-	p.FlagSet.StringVar(&token, "token", "", "Github auth token. Will use the value of $GITHUB_TOKEN if set (required)")
-	p.FlagSet.StringVar(&token, "t", "", "Github auth token. Will use the value of $GITHUB_TOKEN if set (required)")
+	p.FlagSet.StringVar(&token, "token", os.Getenv("GITHUB_TOKEN"), "Github auth token. Will use the value of the GITHUB_TOKEN env var if set (required)")
+	p.FlagSet.StringVar(&token, "t", os.Getenv("GITHUB_TOKEN"), "Github auth token. Will use the value of the GITHUB_TOKEN env var if set (required)")
 	p.FlagSet.BoolVar(&replace, "replace", false, "Replace existing repositories in -dir instead of attempting to update")
 	p.FlagSet.BoolVar(&replace, "r", false, "Replace existing repositories in -dir instead of attempting to update")
 	p.FlagSet.IntVar(&parallel, "parallel", 2, "Number of repositories to clone in parallel")
 	p.FlagSet.IntVar(&parallel, "p", 2, "Number of repositories to clone in parallel")
 
 	p.Before = func(ctx context.Context) error {
-		if t := os.Getenv("GITHUB_TOKEN"); t != "" {
-			token = t
-		}
-
 		if dir == "" || token == "" {
 			p.FlagSet.Usage()
 			return fmt.Errorf("error: directory and token are required")
