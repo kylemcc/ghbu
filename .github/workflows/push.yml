@@ -1,0 +1,30 @@
+on:
+  push:
+    branches:
+      - master
+name: Build Docker Image
+jobs:
+  checkMasterBranch:
+    name: Check Master Branch
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Docker Login
+      uses: actions/docker/login@76ff57a
+      env:
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    - name: Build Image
+      uses: actions/docker/cli@76ff57a
+      with:
+        args: build -t kylemcc/prv:ghbu .
+    - name: Push Image
+      uses: actions/docker/cli@76ff57a
+      with:
+        args: push kylemcc/prv:ghbu
+    - name: Send Slack Notification
+      uses: kylemcc/actions/slack-webhook@master
+      if: always()
+      env:
+        SLACK_MESSAGE: '$GITHUB_REPOSITORY: Build ${{ job.status }}'
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
