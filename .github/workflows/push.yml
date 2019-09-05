@@ -4,8 +4,8 @@ on:
       - master
 name: Build Docker Image
 jobs:
-  checkMasterBranch:
-    name: Check Master Branch
+  build_and_publish:
+    name: Build and Publish
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master

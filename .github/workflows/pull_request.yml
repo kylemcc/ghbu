@@ -1,0 +1,23 @@
+on: pull_request
+name: Check PR
+jobs:
+  check_pr:
+    name: Check PR
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Go Env
+      uses: actions/setup-go@v1
+    - uses: actions/checkout@master
+    - name: go vet
+      run: go vet ./...
+    - name: go fmt
+      run: |
+          if [[ ! -z "$(gofmt -s -l . | grep -v vendor | tee /dev/stderr)" ]]; then
+            exit 1;
+          fi
+    - name: run tests
+      run: go test ./...
+    - name: Build Image
+      uses: actions/docker/cli@76ff57a
+      with:
+        args: build -t kylemcc/prv:ghbu .
