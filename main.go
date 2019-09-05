@@ -302,3 +302,4 @@ func updateRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 	fmt.Printf("Done backing up %v.\n", r.GetFullName())
 	return nil
 }
+
