@@ -13,14 +13,14 @@ jobs:
       uses: actions/checkout@master
     - name: fetch deps
       run: go get
-    - name: go vet
+    - name: Go Vet
       run: go vet ./...
-    - name: go fmt
+    - name: Go Format Check
       run: |
           if [[ ! -z "$(gofmt -s -l . | grep -v vendor | tee /dev/stderr)" ]]; then
             exit 1;
           fi
-    - name: run tests
+    - name: Run Tests
       run: go test ./...
     - name: Build Image
       uses: actions/docker/cli@76ff57a
