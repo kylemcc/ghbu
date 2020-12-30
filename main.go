@@ -14,6 +14,7 @@ import (
 
 	"github.com/genuinetools/pkg/cli"
 	"github.com/google/go-github/github"
+	"github.com/kylemcc/ghbu/version"
 
 	"golang.org/x/oauth2"
 )
@@ -58,6 +59,9 @@ func main() {
 	p.Name = "ghbu"
 	p.Description = "A tool for backing up all Github repos for a user/organization"
 	p.FlagSet = flag.NewFlagSet("global", flag.ExitOnError)
+
+	p.Version = version.Version
+	p.GitCommit = version.GitCommit
 
 	p.FlagSet.StringVar(&orgName, "org", "", "Github Organization to backup. Takes precedence over -user")
 	p.FlagSet.StringVar(&orgName, "o", "", "Github Organization to backup. Takes precedence over -user")

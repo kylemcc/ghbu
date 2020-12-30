@@ -1,4 +1,4 @@
-FROM golang:1.12.1-alpine as builder
+FROM golang:alpine as builder
 
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
 ENV CGO_ENABLED 0
