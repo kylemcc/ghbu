@@ -9,19 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Docker Login
-      uses: actions/docker/login@76ff57a
-      env:
-        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-    - name: Build Image
-      uses: actions/docker/cli@76ff57a
+    - name: Build and Push Image
+      uses: docker/build-push-action@v1
       with:
-        args: build -t kylemcc/prv:ghbu .
-    - name: Push Image
-      uses: actions/docker/cli@76ff57a
-      with:
-        args: push kylemcc/prv:ghbu
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        repository: kylemcc/ghbu
+        add_git_labels: true
     - name: Send Slack Notification
       uses: kylemcc/actions/slack-webhook@master
       if: always()

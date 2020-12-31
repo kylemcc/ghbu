@@ -23,6 +23,6 @@ jobs:
     - name: Run Tests
       run: go test ./...
     - name: Build Image
-      uses: actions/docker/cli@76ff57a
+      uses: docker/build-push-action@v1
       with:
-        args: build -t kylemcc/prv:ghbu .
+        push: false
