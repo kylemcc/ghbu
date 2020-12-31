@@ -1,5 +1,6 @@
 github.com/genuinetools/pkg v0.0.0-20181022210355-2fcf164d37cb h1:9MQ4N7zyYTtdjLGqE5McDbgjIjqR5TAPc6lytEOdndc=
 github.com/genuinetools/pkg v0.0.0-20181022210355-2fcf164d37cb/go.mod h1:XTcrCYlXPxnxL2UpnwuRn7tcaTn9HAhxFoFJucootk8=
+github.com/golang/protobuf v0.0.0-20171021043952-1643683e1b54 h1:nRNJXiJvemchkOTn0V4U11TZkvacB94gTzbTZbSA7Rw=
 github.com/golang/protobuf v0.0.0-20171021043952-1643683e1b54/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/google/go-github v0.0.0-20171101205232-464f5a91396a h1:K2SjF+EW3YM/hdf0AfQ6RSfTvu69NyqaRZuCF1JImG8=
 github.com/google/go-github v0.0.0-20171101205232-464f5a91396a/go.mod h1:zLgOLi98H3fifZn+44m+umXrS52loVEgC2AApnigrVQ=
@@ -9,4 +10,7 @@ golang.org/x/net v0.0.0-20171102191033-01c190206fbd h1:CLQSRrSDQMOMkogMxky7XOkER
 golang.org/x/net v0.0.0-20171102191033-01c190206fbd/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/oauth2 v0.0.0-20170928010508-bb50c06baba3 h1:YGx0PRKSN/2n/OcdFycCC0JUA/Ln+i5lPcN8VoNDus0=
 golang.org/x/oauth2 v0.0.0-20170928010508-bb50c06baba3/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
+golang.org/x/sync v0.0.0-20201207232520-09787c993a3a h1:DcqTD9SDLc+1P/r1EmRBwnVsrOwW+kk2vWf9n+1sGhs=
+golang.org/x/sync v0.0.0-20201207232520-09787c993a3a/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
+google.golang.org/appengine v1.0.0 h1:dN4LljjBKVChsv0XCSI+zbyzdqrkEwX5LQFUMRSGqOc=
 google.golang.org/appengine v1.0.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
