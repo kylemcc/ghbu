@@ -19,7 +19,7 @@ jobs:
     - run: |
         go install github.com/mitchellh/gox@latest
         make release
-    - uses: docker://kylemcc/ghr/ghr:latest
+    - uses: docker://kylemcc/ghr:latest
       with:
         args: create -T ${{ steps.tag-name.outputs.TAG_NAME }} dist/
       env:
