@@ -43,9 +43,9 @@ release: build-release calculate-checksums ## Creates release artifacts
 build-release: *.go ## Builds release binaries
 	@echo "+ $@"
 	CGO_ENABLED=$(CGO_ENABLED) gox \
-		-os="darwin freebsd linux solaris windows" \
-		-arch="amd64 arm arm64 386" \
-		-osarch="!darwin/arm !darwin/arm64" \
+		-os="darwin freebsd openbsd netbsd linux solaris" \
+		-arch="amd64 arm arm64" \
+		-osarch="!darwin/arm" \
 		-output="$(BUILDDIR)/$(NAME)-{{.OS}}-{{.Arch}}" \
 		-tags "$(BUILDTAGS),netgo,osusergo,static_build" \
 		$(GO_LDFLAGS_STATIC)
