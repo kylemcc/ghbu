@@ -277,7 +277,7 @@ func cloneRepo(ctx context.Context, r *github.Repository, cfg *Config) error {
 	}
 
 	fmt.Printf("Backing up %v...\n", r.GetFullName())
-	cmd := exec.Command("git", "clone", cloneURL)
+	cmd := exec.Command("git", "clone", cloneURL) //#nosec
 	cmd.Dir = cfg.Dir
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid: true,
